@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPI Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CPI Calculator</h1>
+            <p>Enter your course credits and grades to calculate your CPI.</p>
+        </div>
+        <form id="cpiForm">
+            <div class="mb-3">
+                <label for="numCourses" class="form-label">Number of Courses:</label>
+                <input type="number" id="numCourses" class="form-control" required>
+            </div>
+            <div id="courses" class="mb-3"></div>
+            <button type="submit" class="btn btn-primary">Calculate</button>
+        </form>
+        <div class="result mt-3">
+            <h4 id="cpiResult">CPI: --</h4>
+        </div>
+    </div>
+
+    <script>
+        const numCoursesInput = document.getElementById('numCourses');
+        const coursesDiv = document.getElementById('courses');
+        const cpiForm = document.getElementById('cpiForm');
+        const cpiResult = document.getElementById('cpiResult');
+
+        numCoursesInput.addEventListener('input', () => {
+            const numCourses = parseInt(numCoursesInput.value);
+            coursesDiv.innerHTML = '';
+            for (let i = 0; i < numCourses; i++) {
+                const courseRow = document.createElement('div');
+                courseRow.className = 'row mb-2';
+                courseRow.innerHTML = `
+                    <div class="col">
+                        <input type="number" class="form-control credit-input" placeholder="Credits" required>
+                    </div>
+                    <div class="col">
+                        <select class="form-select grade-input" required>
+                            <option value="">Select Grade</option>
+                            <option value="A+">A+</option>
+                            <option value="A">A</option>
+                            <option value="B+">B+</option>
+                            <option value="B">B</option>
+                            <option value="C+">C+</option>
+                            <option value="C">C</option>
+                            <option value="D+">D+</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="F">F</option>
+                        </select>
+                    </div>
+                `;
+                coursesDiv.appendChild(courseRow);
+            }
+        });
+
+        cpiForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const credits = Array.from(document.querySelectorAll('.credit-input')).map(el => el.value);
+            const grades = Array.from(document.querySelectorAll('.grade-input')).map(el => el.value);
+
+            const response = await fetch('/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credits, grades })
+            });
+            const data = await response.json();
+            if (data.cpi) {
+                cpiResult.textContent = `CPI: ${data.cpi}`;
+            } else {
+                cpiResult.textContent = 'Error: ' + (data.error || 'Invalid data');
+            }
+        });
+    </script>
+</body>
+</html>
